@@ -1,0 +1,14 @@
+[ignore]
+
+.*/test/.*
+.*/node_modules/fbjs/.*
+.*/node_modules/stylelint/.*
+
+[options]
+
+module.name_mapper.extension='scss' -> '<PROJECT_ROOT>/flow/stub/cssModules.js'
+module.name_mapper.extension='json' -> '<PROJECT_ROOT>/flow/stub/jsonModules.js'
+
+[libs]
+
+decls/

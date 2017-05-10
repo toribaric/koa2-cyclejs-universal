@@ -1,0 +1,21 @@
+{
+  "extends": [
+    "standard"
+  ],
+  "parser": "babel-eslint",
+  "plugins": [
+    "react",
+    "flowtype"
+  ],
+  "rules": {
+    "flowtype/define-flow-type": 1,
+    "flowtype/use-flow-type": 1,
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error"
+  },
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
+}
