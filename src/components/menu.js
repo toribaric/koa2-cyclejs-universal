@@ -12,6 +12,9 @@ export default function Menu (sources) {
           li(sources.location.path === '/' ? '.active' : '', [
             a({ attrs: { class: `menu-item ${styles.menuItem}`, href: '/' } }, 'Home')
           ]),
+          li(sources.location.path === '/items' ? '.active' : '', [
+            a({ attrs: { class: `menu-item ${styles.menuItem}`, href: '/items' } }, 'Items')
+          ]),
           li(sources.location.path === '/about' ? '.active' : '', [
             a({ attrs: { class: `menu-item ${styles.menuItem}`, href: '/about' } }, 'About')
           ])

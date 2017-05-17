@@ -5,6 +5,7 @@ import 'babel-polyfill'
 import path from 'path'
 import Koa from 'koa'
 import koaBody from 'koa-bodyparser'
+import Router from 'koa-router'
 import serve from 'koa-static'
 import convert from 'koa-convert'
 import koaNunjucks from 'koa-nunjucks-2'
@@ -13,7 +14,19 @@ import { prepare, render } from './render'
 
 const APP_PORT: number = 3000
 const IS_PROD: boolean = process.env.NODE_ENV !== 'development'
+
 const koa: Koa = new Koa()
+const router: Router = new Router()
+router.get('/api/v1/items', (ctx: Object, next: () => void): void => {
+  ctx.body = [
+    { title: 'Item 1' },
+    { title: 'Item 2' },
+    { title: 'Item 3' }
+  ]
+})
+router.get('/api/v1/items/:id', (ctx: Object, next: () => void): void => {
+
+})
 
 koa.keys = ['!s3cr3t:']
 
@@ -39,6 +52,8 @@ if (!IS_PROD) {
   webpackUtils.runDevServer(koa)
 }
 
+koa.use(router.routes())
+koa.use(router.allowedMethods())
 koa.use(convert(serve(path.resolve(__dirname, './client'))))
 koa.use(prepare)
 koa.use(render)

@@ -21,6 +21,7 @@ module.exports = {
       '@cycle/dom',
       '@cycle/html',
       '@cycle/run',
+      '@cycle/http',
       'cyclic-router',
       'history',
       'switch-path',

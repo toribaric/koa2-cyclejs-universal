@@ -19,7 +19,7 @@ function createApp (appFn, url) {
 }
 
 export async function prepare (ctx: Object, next: () => void): Promise<void> {
-  if (ctx.req.url === '/favicon.ico') {
+  if (ctx.req.url === '/favicon.ico' || ctx.req.url.indexOf('api') > 0) {
     return next()
   }
 
@@ -35,7 +35,11 @@ export async function prepare (ctx: Object, next: () => void): Promise<void> {
   return next()
 }
 
-export async function render (ctx: Object): Promise<void> {
+export async function render (ctx: Object, next: () => void): Promise<void> {
+  if (ctx.req.url === '/favicon.ico' || ctx.req.url.indexOf('api') > 0) {
+    return next()
+  }
+
   await ctx.render('index', {
     isProd: IS_PROD,
     content: ctx.state.content,

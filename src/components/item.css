@@ -1,0 +1,10 @@
+.item {
+  max-width: 250px;
+  a {
+    cursor: pointer;
+  }
+}
+
+.removeButton {
+  padding-right: 15px;
+}
