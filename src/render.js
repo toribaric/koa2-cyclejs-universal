@@ -1,5 +1,6 @@
 import { run } from '@cycle/run'
 import { makeHTMLDriver } from '@cycle/html'
+import { makeHTTPDriver } from '@cycle/http'
 import { makeRouterDriver } from 'cyclic-router'
 import { createMemoryHistory } from 'history'
 import switchPath from 'switch-path'
@@ -28,6 +29,7 @@ export async function prepare (ctx: Object, next: () => void): Promise<void> {
     DOM: makeHTMLDriver(content => {
       ctx.state.content = content
     }),
+    HTTP: makeHTTPDriver(),
     Router: makeRouterDriver(createMemoryHistory(), switchPath),
     PreventDefault: () => {}
   })

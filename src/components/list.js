@@ -25,7 +25,7 @@ function intent (domSource, itemRemove$, itemDuplicate$) {
   )
 }
 
-function model (action$, itemWrapper) {
+function model (action$, response$, itemWrapper) {
   let mutableLastId = 0
 
   function createNewItem (props) {
@@ -33,6 +33,14 @@ function model (action$, itemWrapper) {
     const sinks = itemWrapper(id, props)
     return { id, props, DOM: sinks.DOM, Remove: sinks.Remove, Duplicate: sinks.Duplicate }
   }
+
+  const initialStateReducer$ = response$
+    .map(res => {
+      return function initialStateReducer () {
+        const items = JSON.parse(res.text)
+        return items.map(item => createNewItem(item))
+      }
+    })
 
   const addItemReducer$ = action$
     .filter(a => a.type === 'ADD_ITEM')
@@ -57,10 +65,8 @@ function model (action$, itemWrapper) {
       return listItems.concat([newItem])
     })
 
-  const initialState = [createNewItem({ title: 'Item 001' })]
-
-  return xs.merge(addItemReducer$, removeItemReducer$, duplicateItemReducer$)
-    .fold((listItems, reducer) => reducer(listItems), initialState)
+  return xs.merge(initialStateReducer$, addItemReducer$, removeItemReducer$, duplicateItemReducer$)
+    .fold((listItems, reducer) => reducer(listItems), [])
 }
 
 function view (state$) {
@@ -82,8 +88,10 @@ export default function List (sources) {
   const proxyItemRemove$ = xs.create()
   const proxyItemDuplicate$ = xs.create()
   const itemWrapper = createItemWrapper(sources.DOM)
+  const request$ = xs.of({ url: sources.url, category: sources.category })
+  const response$ = sources.HTTP.select('items').flatten()
   const action$ = intent(sources.DOM, proxyItemRemove$, proxyItemDuplicate$)
-  const state$ = model(action$, itemWrapper)
+  const state$ = model(action$, response$, itemWrapper)
   const vtree$ = view(state$)
   const itemRemove$ = state$.map(items =>
     xs.merge(...items.map(item => item.Remove))
@@ -96,6 +104,7 @@ export default function List (sources) {
   proxyItemDuplicate$.imitate(itemDuplicate$)
 
   return {
-    DOM: vtree$
+    DOM: vtree$,
+    HTTP: request$
   }
 }

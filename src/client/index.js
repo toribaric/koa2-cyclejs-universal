@@ -1,5 +1,6 @@
 import { run } from '@cycle/run'
 import { makeDOMDriver } from '@cycle/dom'
+import { makeHTTPDriver } from '@cycle/http'
 import { makeRouterDriver } from 'cyclic-router'
 import { createBrowserHistory } from 'history'
 import switchPath from 'switch-path'
@@ -19,6 +20,7 @@ function preventDefaultDriver (ev$) {
 
 run(main, {
   DOM: makeDOMDriver('#app-container'),
+  HTTP: makeHTTPDriver(),
   Router: makeRouterDriver(createBrowserHistory(), switchPath),
   PreventDefault: preventDefaultDriver
 })

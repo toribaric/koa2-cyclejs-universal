@@ -12,6 +12,7 @@ export default function app (sources) {
 
   return {
     DOM: page$.map(c => c.DOM).flatten(),
+    HTTP: page$.map(c => c.HTTP).flatten(),
     Router: page$.map(c => c.Router).flatten(),
     PreventDefault: sources.DOM.select('.menu-item').events('click')
   }

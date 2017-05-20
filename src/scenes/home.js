@@ -15,6 +15,7 @@ export default function Home (sources) {
 
   return {
     DOM: xs.of(vnode),
+    HTTP: xs.empty(),
     Router: sources.DOM.select('.menu-item')
       .events('click')
       .map(ev => ev.target.pathname)
