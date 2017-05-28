@@ -11,6 +11,13 @@ chunk hashing, css loader with [css modules](https://github.com/css-modules/css-
 - [standard.js](https://standardjs.com/)
 - [flow.js](https://flow.org/) static type checker
   - work in progress, must define flow.js types for cycle/xstream typescript types
+  
+## Included feature examples
+- client-side routing with server-side rendering (both content and state - state dehydration/rehydration isn't
+done yet, should be in the next commit)
+- items scene with item lists and the ability to add, remove, duplicate items (cyclic dependent streams handling)
+- modal dialog which wraps the injected component (AddItem from list in this case) - more examples of cyclic
+dependent streams handling
 
 ## Getting started
 
