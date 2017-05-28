@@ -2,6 +2,7 @@ import xs from 'xstream'
 import isolate from '@cycle/isolate'
 import { div, button } from '@cycle/dom'
 import Item from './item'
+import AddItem from './addItem'
 
 function createItemWrapper (DOM) {
   return function itemWrapper (id, props) {
@@ -14,10 +15,14 @@ function createItemWrapper (DOM) {
   }
 }
 
-function intent (domSource, itemRemove$, itemDuplicate$) {
+function createAddItem (DOM, openModal$) {
+  return isolate(AddItem)({ DOM, OpenModal: openModal$ })
+}
+
+function intent (domSource, itemRemove$, itemDuplicate$, openModal$) {
   return xs.merge(
     domSource.select('.add-button').events('click')
-      .mapTo({type: 'ADD_ITEM', payload: `Item ${Math.floor(Math.random() * 20)}`}),
+      .mapTo({type: 'OPEN_MODAL', component: createAddItem(domSource, openModal$)}),
 
     itemRemove$.map(id => ({type: 'REMOVE_ITEM', payload: id})),
 
@@ -43,9 +48,15 @@ function model (action$, response$, itemWrapper) {
     })
 
   const addItemReducer$ = action$
-    .filter(a => a.type === 'ADD_ITEM')
+    .filter(a => a.type === 'OPEN_MODAL')
+    .map(x => x.component.AddItem)
+    .flatten()
     .map(action => {
       return function addItemReducer (listItems) {
+        if (!action.payload) {
+          return listItems
+        }
+
         const newItem = createNewItem({ title: action.payload })
         return listItems.concat([newItem])
       }
@@ -87,10 +98,11 @@ function view (state$) {
 export default function List (sources) {
   const proxyItemRemove$ = xs.create()
   const proxyItemDuplicate$ = xs.create()
+  const proxyOpenModal$ = xs.create()
   const itemWrapper = createItemWrapper(sources.DOM)
   const request$ = xs.of({ url: sources.url, category: sources.category })
   const response$ = sources.HTTP.select('items').flatten()
-  const action$ = intent(sources.DOM, proxyItemRemove$, proxyItemDuplicate$)
+  const action$ = intent(sources.DOM, proxyItemRemove$, proxyItemDuplicate$, proxyOpenModal$)
   const state$ = model(action$, response$, itemWrapper)
   const vtree$ = view(state$)
   const itemRemove$ = state$.map(items =>
@@ -100,11 +112,15 @@ export default function List (sources) {
     xs.merge(...items.map(item => item.Duplicate))
   ).flatten()
 
+  const openModal$ = action$.filter(action => action.type === 'OPEN_MODAL')
+
   proxyItemRemove$.imitate(itemRemove$)
   proxyItemDuplicate$.imitate(itemDuplicate$)
+  proxyOpenModal$.imitate(openModal$)
 
   return {
     DOM: vtree$,
-    HTTP: request$
+    HTTP: request$,
+    OpenModal: openModal$
   }
 }

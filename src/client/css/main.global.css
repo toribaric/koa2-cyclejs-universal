@@ -1,3 +1,11 @@
 #app-container {
-
+  & .modal {
+    display: block;
+    opacity: 1;
+    & button {
+      & i {
+        opacity: 0.6;
+      }
+    }
+  }
 }

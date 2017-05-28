@@ -56,7 +56,8 @@ module.exports = {
         test: /\.global\.(css|scss)$/,
         loaders: [
           'style-loader',
-          'css-loader'
+          'css-loader',
+          'postcss-loader'
         ]
       },
       {
