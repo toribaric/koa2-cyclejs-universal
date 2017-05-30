@@ -1,6 +1,7 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
 import { div, button } from '@cycle/dom'
+import { getRequestWithState, getResponseWithState } from '../drivers/initialState'
 import Item from './item'
 import AddItem from './addItem'
 
@@ -40,9 +41,8 @@ function model (action$, response$, itemWrapper) {
   }
 
   const initialStateReducer$ = response$
-    .map(res => {
+    .map(items => {
       return function initialStateReducer () {
-        const items = JSON.parse(res.text)
         return items.map(item => createNewItem(item))
       }
     })
@@ -100,8 +100,8 @@ export default function List (sources) {
   const proxyItemDuplicate$ = xs.create()
   const proxyOpenModal$ = xs.create()
   const itemWrapper = createItemWrapper(sources.DOM)
-  const request$ = xs.of({ url: sources.url, category: sources.category })
-  const response$ = sources.HTTP.select('items').flatten()
+  const request$ = getRequestWithState(sources.initialState, sources.url, sources.category)
+  const response$ = getResponseWithState(sources.initialState, sources.HTTP, sources.category)
   const action$ = intent(sources.DOM, proxyItemRemove$, proxyItemDuplicate$, proxyOpenModal$)
   const state$ = model(action$, response$, itemWrapper)
   const vtree$ = view(state$)

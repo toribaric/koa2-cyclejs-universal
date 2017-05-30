@@ -6,7 +6,7 @@ const webpack = require('webpack')
 const devPort = 9001
 
 module.exports = {
-  devtool: 'cheap-eval-source-map',
+  devtool: 'source-map',
   performance: {
     hints: false
   },

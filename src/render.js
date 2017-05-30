@@ -4,7 +4,9 @@ import { makeHTTPDriver } from '@cycle/http'
 import { makeRouterDriver } from 'cyclic-router'
 import { createMemoryHistory } from 'history'
 import switchPath from 'switch-path'
+import { initialStateDriver } from './drivers/initialState'
 import app from './app'
+import getInitialState from './state'
 import webpackUtils from './webpackUtils'
 
 const IS_PROD: boolean = process.env.NODE_ENV !== 'development'
@@ -31,6 +33,7 @@ export async function prepare (ctx: Object, next: () => void): Promise<void> {
     }),
     HTTP: makeHTTPDriver(),
     Router: makeRouterDriver(createMemoryHistory(), switchPath),
+    InitialState: initialStateDriver,
     PreventDefault: () => {}
   })
 
@@ -45,6 +48,7 @@ export async function render (ctx: Object, next: () => void): Promise<void> {
   await ctx.render('index', {
     isProd: IS_PROD,
     content: ctx.state.content,
+    state: JSON.stringify(getInitialState(ctx.req.url)),
     ...webpackUtils.getChunksContextProps(IS_PROD)
   })
 }

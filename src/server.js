@@ -9,6 +9,7 @@ import Router from 'koa-router'
 import serve from 'koa-static'
 import convert from 'koa-convert'
 import koaNunjucks from 'koa-nunjucks-2'
+import setupApiRoutes from './api'
 import webpackUtils from './webpackUtils'
 import { prepare, render } from './render'
 
@@ -17,16 +18,8 @@ const IS_PROD: boolean = process.env.NODE_ENV !== 'development'
 
 const koa: Koa = new Koa()
 const router: Router = new Router()
-router.get('/api/v1/items', (ctx: Object, next: () => void): void => {
-  ctx.body = [
-    { title: 'Item 1' },
-    { title: 'Item 2' },
-    { title: 'Item 3' }
-  ]
-})
-router.get('/api/v1/items/:id', (ctx: Object, next: () => void): void => {
 
-})
+setupApiRoutes(router)
 
 koa.keys = ['!s3cr3t:']
 

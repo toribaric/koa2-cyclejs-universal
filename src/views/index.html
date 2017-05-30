@@ -9,7 +9,7 @@
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   {% if isProd %}
     <link href="/dist/{{ webpack.style }}" rel="stylesheet" type="text/css">
-    <script>
+    <script type="text/javascript">
       //<![CDATA[
       window.webpackManifest = {{ webpack.webpackChunkManifest | safe }}
       //]]>
@@ -23,6 +23,9 @@
 </head>
 <body>
   <div id="app-container">{{ content | safe }}</div>
+  <script type="text/javascript">
+    window.state = {{ state | safe }}
+  </script>
   <script src="/dist/{{ webpack.vendor }}"></script>
   <script src="/dist/{{ webpack.app }}"></script>
 </body>

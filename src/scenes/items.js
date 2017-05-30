@@ -1,26 +1,53 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
 import { div, section, h1 } from '@cycle/dom'
+import { getRequestWithState, getResponseWithState } from '../drivers/initialState'
 import Menu from '../components/menu'
 import List from '../components/list'
 import ModalDialog from '../components/modal'
 
-function createNewList (id, sources) {
-  return isolate(List)(sources, `list${id}`)
+function getListParams (sources, list) {
+  const params = { ...sources, url: `/api/v1/list/${list.id}/items`, category: 'listItems' }
+  if (list.items) {
+    return { ...params, initialState: list.items }
+  }
+
+  return params
+}
+
+function createNewList (id, params) {
+  return isolate(List)(params, `list${id}`)
 }
 
 function createModal (sources, OpenModal) {
   return isolate(ModalDialog)({ ...sources, OpenModal }, 'modal1')
 }
 
-export default function Items (sources) {
-  const list1 = createNewList(1, { ...sources, url: '/api/v1/items', category: 'items' })
-  const list2 = createNewList(2, { ...sources, url: '/api/v1/items', category: 'items' })
-  const modal = createModal(sources, xs.merge(list1.OpenModal, list2.OpenModal))
-  const children$ = xs.combine(modal.DOM, list1.DOM, list2.DOM)
+function model (sources, response$) {
+  const initialStateReducer$ = response$
+    .map(lists => {
+      return function initialStateReducer () {
+        return lists.map(list => {
+          const params = getListParams(sources, list)
+          return createNewList(list.id, params)
+        })
+      }
+    })
 
-  const vtree$ = children$.map(([ modal, ...lists ]) =>
-      div([
+  return initialStateReducer$
+    .fold((lists, reducer) => reducer(lists), [])
+}
+
+function view (state$, sources) {
+  const openModal$ = state$
+    .map(lists => xs.merge(...lists.map(list => list.OpenModal)))
+    .flatten()
+  const modal = createModal(sources, openModal$)
+  return state$
+    .map(lists => xs.combine(modal.DOM, ...lists.map(list => list.DOM)))
+    .flatten()
+    .map(([ modal, ...lists ]) => {
+      return div([
         Menu(sources),
         section('.items', [
           h1('Your items'),
@@ -28,12 +55,21 @@ export default function Items (sources) {
         ]),
         ...lists
       ])
-    )
-  const request$ = xs.merge(list1.HTTP, list2.HTTP)
+    })
+}
+
+export default function Items (sources) {
+  const response$ = getResponseWithState(sources.InitialState, sources.HTTP, 'items')
+  const state$ = model(sources, response$)
+  const vtree$ = view(state$, sources)
+  const request$ = getRequestWithState(state$, '/api/v1/lists', 'items')
+  const listRequests$ = state$
+    .map(lists => xs.merge(...lists.map(list => list.HTTP)))
+    .flatten()
 
   return {
     DOM: vtree$,
-    HTTP: request$,
+    HTTP: xs.merge(request$, listRequests$),
     Router: sources.DOM.select('.menu-item')
       .events('click')
       .map(ev => ev.target.pathname)
