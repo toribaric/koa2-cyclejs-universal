@@ -7,7 +7,13 @@ import List from '../components/list'
 import ModalDialog from '../components/modal'
 
 function getListParams (sources, list) {
-  const params = { ...sources, url: `/api/v1/list/${list.id}/items`, category: 'listItems' }
+  const params = {
+    ...sources,
+    listId: list.id,
+    url: `/api/v1/list/${list.id}/items`,
+    category: 'listItems'
+  }
+
   if (list.items) {
     return { ...params, initialState: list.items }
   }

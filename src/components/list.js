@@ -1,6 +1,6 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
-import { div, button } from '@cycle/dom'
+import { div, button, h4 } from '@cycle/dom'
 import { getRequestWithState, getResponseWithState } from '../drivers/initialState'
 import Item from './item'
 import AddItem from './addItem'
@@ -80,7 +80,7 @@ function model (action$, response$, itemWrapper) {
     .fold((listItems, reducer) => reducer(listItems), [])
 }
 
-function view (state$) {
+function view (state$, listId) {
   const buttons = div('.buttons', [
     button('.add-button', 'Add new item')
   ])
@@ -89,6 +89,7 @@ function view (state$) {
     const vnodes$ = items.map(item => item.DOM)
     return xs.combine(...vnodes$)
       .map(vnodes => div('.list-wrapper', [
+        h4(`List No. ${listId}`),
         buttons,
         div('.list', vnodes)
       ]))
@@ -104,7 +105,7 @@ export default function List (sources) {
   const response$ = getResponseWithState(sources.initialState, sources.HTTP, sources.category)
   const action$ = intent(sources.DOM, proxyItemRemove$, proxyItemDuplicate$, proxyOpenModal$)
   const state$ = model(action$, response$, itemWrapper)
-  const vtree$ = view(state$)
+  const vtree$ = view(state$, sources.listId)
   const itemRemove$ = state$.map(items =>
     xs.merge(...items.map(item => item.Remove))
   ).flatten()
