@@ -14,8 +14,10 @@ chunk hashing, css loader with [css modules](https://github.com/css-modules/css-
   
 ## Included feature examples
 - client-side routing with server-side rendering (both content and state dehydration/rehydration with initial state driver)
-- items scene with dynamic item lists and the ability to add, remove, duplicate items (cyclic dependent streams handling)
-  - state persistence isn't implemented yet, will be with the next push
+- items scene with dynamic item lists and the ability to add, remove, duplicate items with server-side state persistence 
+(cyclic dependent streams handling)
+- items scene also has examples of immediate rendering while persisting server-side ('optimistic response' - item removing)
+and waiting for the server to respond to render (item adding and duplicating)
 - modal dialog which wraps the injected component (AddItem from list in this case) - more examples of cyclic
 dependent streams handling
 

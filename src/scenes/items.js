@@ -10,7 +10,7 @@ function getListParams (sources, list) {
   const params = {
     ...sources,
     listId: list.id,
-    url: `/api/v1/list/${list.id}/items`,
+    url: `/api/v1/lists/${list.id}/items`,
     category: 'listItems'
   }
 
@@ -31,9 +31,10 @@ function createModal (sources, OpenModal) {
 
 function model (sources, response$) {
   const initialStateReducer$ = response$
-    .map(lists => {
+    .filter(a => a.type === 'INITIAL_STATE')
+    .map(action => {
       return function initialStateReducer () {
-        return lists.map(list => {
+        return action.payload.map(list => {
           const params = getListParams(sources, list)
           return createNewList(list.id, params)
         })

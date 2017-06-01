@@ -1,5 +1,9 @@
 import xs from 'xstream'
 
+function initialStateAction (payload) {
+  return { type: 'INITIAL_STATE', payload }
+}
+
 export function initialStateDriver () {
   return xs.create({
     start: listener => {
@@ -41,13 +45,14 @@ export function getResponseWithState (initialState, HTTP, category) {
         : HTTP.select(category).flatten())
       .flatten()
       .map(res => res.text ? JSON.parse(res.text) : res)
+      .map(initialState => initialStateAction(initialState))
   }
 
   if (initialState) {
-    return xs.of(initialState)
+    return xs.of(initialStateAction(initialState))
   }
 
   return HTTP.select(category)
     .flatten()
-    .map(res => JSON.parse(res.text))
+    .map(res => initialStateAction(JSON.parse(res.text)))
 }
