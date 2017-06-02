@@ -12,12 +12,13 @@ import koaNunjucks from 'koa-nunjucks-2'
 import setupApiRoutes from './api'
 import webpackUtils from './webpackUtils'
 import { prepare, render } from './render'
+import { BASE_PATH } from './constants'
 
 const APP_PORT: number = 3000
 const IS_PROD: boolean = process.env.NODE_ENV !== 'development'
 
 const koa: Koa = new Koa()
-const router: Router = new Router({ prefix: '/api/v1' })
+const router: Router = new Router({ prefix: BASE_PATH })
 
 setupApiRoutes(router)
 

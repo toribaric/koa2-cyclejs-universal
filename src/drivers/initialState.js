@@ -1,7 +1,9 @@
 import xs from 'xstream'
 
+export const INITIAL_STATE = 'INITIAL_STATE'
+
 function initialStateAction (payload) {
-  return { type: 'INITIAL_STATE', payload }
+  return { type: INITIAL_STATE, payload }
 }
 
 export function initialStateDriver () {

@@ -1,13 +1,14 @@
 import xs from 'xstream'
 import { div, h4, a } from '@cycle/dom'
 import styles from './item.css'
+import { REMOVE_ITEM, DUPLICATE_ITEM } from '../constants'
 
 function intent (DOM) {
   return xs.merge(
     DOM.select('.remove-button').events('click')
-      .mapTo({ type: 'REMOVE' }),
+      .mapTo({ type: REMOVE_ITEM }),
     DOM.select('.duplicate-button').events('click')
-      .mapTo({ type: 'DUPLICATE' })
+      .mapTo({ type: DUPLICATE_ITEM })
   )
 }
 
@@ -37,7 +38,7 @@ export default function Item (sources) {
 
   return {
     DOM: vtree$,
-    Remove: action$.filter(action => action.type === 'REMOVE'),
-    Duplicate: action$.filter(action => action.type === 'DUPLICATE')
+    Remove: action$.filter(action => action.type === REMOVE_ITEM),
+    Duplicate: action$.filter(action => action.type === DUPLICATE_ITEM)
   }
 }

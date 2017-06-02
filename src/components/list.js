@@ -1,9 +1,24 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
 import { div, button, h4 } from '@cycle/dom'
-import { getRequestWithState, getResponseWithState } from '../drivers/initialState'
+import {
+  getRequestWithState,
+  getResponseWithState,
+  INITIAL_STATE
+} from '../drivers/initialState'
 import Item from './item'
 import AddItem from './addItem'
+import {
+  ADD_ITEM,
+  ITEM_ADDED,
+  REMOVE_ITEM,
+  DUPLICATE_ITEM,
+  OPEN_MODAL,
+  BASE_PATH,
+  ADD_ITEM_PATH,
+  DELETE_ITEM_PATH,
+  DUPLICATE_ITEM_PATH
+} from '../constants'
 
 function createAddItem (DOM, openModal$) {
   return isolate(AddItem)({ DOM, OpenModal: openModal$ })
@@ -24,26 +39,31 @@ function createNewItem (DOM, item) {
 function getRequest (action$, { initialState, url, category, listId }) {
   const initial$ = getRequestWithState(initialState, url, category)
   const mutation$ = action$.map(action => {
-    if (action.type === 'ADD_ITEM' && action.payload) {
+    if (action.type === ADD_ITEM && action.payload) {
       return {
-        url: `/api/v1/lists/${listId}/items/add`,
+        url: `${BASE_PATH}${ADD_ITEM_PATH}`
+          .replace(':listId', listId),
         method: 'POST',
         send: { title: action.payload },
         category: 'add-item'
       }
     }
 
-    if (action.type === 'REMOVE_ITEM') {
+    if (action.type === REMOVE_ITEM) {
       return {
-        url: `/api/v1/lists/${listId}/items/${action.payload}/delete`,
+        url: `${BASE_PATH}${DELETE_ITEM_PATH}`
+          .replace(':listId', listId)
+          .replace(':id', action.payload),
         method: 'DELETE',
         category: 'delete-item'
       }
     }
 
-    if (action.type === 'DUPLICATE_ITEM') {
+    if (action.type === DUPLICATE_ITEM) {
       return {
-        url: `/api/v1/lists/${listId}/items/${action.payload}/duplicate`,
+        url: `${BASE_PATH}${DUPLICATE_ITEM_PATH}`
+          .replace(':listId', listId)
+          .replace(':id', action.payload),
         method: 'POST',
         category: 'duplicate-item'
       }
@@ -60,20 +80,24 @@ function getResponse ({ HTTP, initialState, category }) {
     getResponseWithState(initialState, HTTP, category),
     xs.merge(HTTP.select('add-item'), HTTP.select('duplicate-item'))
       .flatten()
-      .map(res => ({ type: 'ITEM_ADDED', payload: JSON.parse(res.text) }))
+      .map(res => ({ type: ITEM_ADDED, payload: JSON.parse(res.text) }))
   )
 }
 
 function intent (DOM, response$, { itemRemove$, itemDuplicate$, openModal$ }) {
   const action$ = xs.merge(
     DOM.select('.add-button').events('click')
-      .mapTo({type: 'OPEN_MODAL', component: createAddItem(DOM, openModal$)}),
-    itemRemove$.map(id => ({type: 'REMOVE_ITEM', payload: id})),
-    itemDuplicate$.map(id => ({type: 'DUPLICATE_ITEM', payload: id}))
+      .mapTo({
+        type: OPEN_MODAL,
+        title: 'Add new item',
+        component: createAddItem(DOM, openModal$)
+      }),
+    itemRemove$.map(id => ({type: REMOVE_ITEM, payload: id})),
+    itemDuplicate$.map(id => ({type: DUPLICATE_ITEM, payload: id}))
   )
 
   const addItemAction$ = action$
-    .filter(a => a.type === 'OPEN_MODAL')
+    .filter(a => a.type === OPEN_MODAL)
     .map(x => x.component.AddItem)
     .flatten()
 
@@ -82,7 +106,7 @@ function intent (DOM, response$, { itemRemove$, itemDuplicate$, openModal$ }) {
 
 function model (DOM, action$) {
   const initialStateReducer$ = action$
-    .filter(a => a.type === 'INITIAL_STATE')
+    .filter(a => a.type === INITIAL_STATE)
     .map(action => {
       return function initialStateReducer () {
         return action.payload.map(item => createNewItem(DOM, item))
@@ -90,7 +114,7 @@ function model (DOM, action$) {
     })
 
   const addItemReducer$ = action$
-    .filter(a => a.type === 'ITEM_ADDED')
+    .filter(a => a.type === ITEM_ADDED)
     .map(action => {
       return function addItemReducer (items) {
         if (action.payload.error) {
@@ -103,7 +127,7 @@ function model (DOM, action$) {
     })
 
   const removeItemReducer$ = action$
-    .filter(a => a.type === 'REMOVE_ITEM')
+    .filter(a => a.type === REMOVE_ITEM)
     .map(action => function removeItemReducer (items) {
       return items.filter(item => item.id !== action.payload)
     })
@@ -138,14 +162,14 @@ export default function List (sources) {
   const action$ = intent(sources.DOM, response$, proxy)
   const state$ = model(sources.DOM, action$)
   const vtree$ = view(state$, sources.listId)
+  const request = getRequest(action$, sources)
   const itemRemove$ = state$.map(items =>
     xs.merge(...items.map(item => item.Remove))
   ).flatten()
   const itemDuplicate$ = state$.map(items =>
     xs.merge(...items.map(item => item.Duplicate))
   ).flatten()
-  const openModal$ = action$.filter(action => action.type === 'OPEN_MODAL')
-  const request = getRequest(action$, sources)
+  const openModal$ = action$.filter(action => action.type === OPEN_MODAL)
 
   proxy.itemRemove$.imitate(itemRemove$)
   proxy.itemDuplicate$.imitate(itemDuplicate$)

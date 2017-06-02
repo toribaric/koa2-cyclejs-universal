@@ -1,16 +1,21 @@
 import xs from 'xstream'
 import isolate from '@cycle/isolate'
 import { div, section, h1 } from '@cycle/dom'
-import { getRequestWithState, getResponseWithState } from '../drivers/initialState'
+import {
+  getRequestWithState,
+  getResponseWithState,
+  INITIAL_STATE
+} from '../drivers/initialState'
 import Menu from '../components/menu'
 import List from '../components/list'
 import ModalDialog from '../components/modal'
+import { BASE_PATH, LISTS_PATH, ITEMS_PATH } from '../constants'
 
 function getListParams (sources, list) {
   const params = {
     ...sources,
     listId: list.id,
-    url: `/api/v1/lists/${list.id}/items`,
+    url: `${BASE_PATH}${ITEMS_PATH}`.replace(':listId', list.id),
     category: 'listItems'
   }
 
@@ -31,7 +36,7 @@ function createModal (sources, OpenModal) {
 
 function model (sources, response$) {
   const initialStateReducer$ = response$
-    .filter(a => a.type === 'INITIAL_STATE')
+    .filter(a => a.type === INITIAL_STATE)
     .map(action => {
       return function initialStateReducer () {
         return action.payload.map(list => {
@@ -69,7 +74,7 @@ export default function Items (sources) {
   const response$ = getResponseWithState(sources.InitialState, sources.HTTP, 'items')
   const state$ = model(sources, response$)
   const vtree$ = view(state$, sources)
-  const request$ = getRequestWithState(state$, '/api/v1/lists', 'items')
+  const request$ = getRequestWithState(state$, `${BASE_PATH}${LISTS_PATH}`, 'items')
   const listRequests$ = state$
     .map(lists => xs.merge(...lists.map(list => list.HTTP)))
     .flatten()

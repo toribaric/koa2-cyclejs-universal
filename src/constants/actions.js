@@ -1,0 +1,6 @@
+export const ADD_ITEM = 'ADD_ITEM'
+export const ITEM_ADDED = 'ITEM_ADDED'
+export const REMOVE_ITEM = 'REMOVE_ITEM'
+export const DUPLICATE_ITEM = 'DUPLICATE_ITEM'
+export const OPEN_MODAL = 'OPEN_MODAL'
+export const CLOSE_MODAL = 'CLOSE_MODAL'
