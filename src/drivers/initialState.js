@@ -42,6 +42,7 @@ export function getRequestWithState (initialState, url, category) {
 export function getResponseWithState (initialState, HTTP, category) {
   if (initialState && typeof initialState === 'object' && initialState.addListener) {
     return initialState
+      .startWith(null)
       .map(state => state
         ? xs.of(state)
         : HTTP.select(category).flatten())
