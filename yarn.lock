@@ -4569,6 +4569,10 @@ querystringify@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-1.0.0.tgz#6286242112c5b712fa654e526652bf6a13ff05cb"
 
+ramda@^0.24.1:
+  version "0.24.1"
+  resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.24.1.tgz#c3b7755197f35b8dc3502228262c4c91ddb6b857"
+
 randomatic@^1.1.3:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/randomatic/-/randomatic-1.1.6.tgz#110dcabff397e9dcff7c0789ccc0a49adf1ec5bb"
@@ -4956,6 +4960,12 @@ slice-ansi@0.0.4:
 snabbdom-selector@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/snabbdom-selector/-/snabbdom-selector-1.1.1.tgz#bde66fc54b34effc2f6a13d4a74de0d3cc771bfd"
+  dependencies:
+    cssauron "^1.4.0"
+
+snabbdom-selector@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/snabbdom-selector/-/snabbdom-selector-1.2.0.tgz#4260a269d9d46f50b9c1f39da628c2af6828dd53"
   dependencies:
     cssauron "^1.4.0"
 

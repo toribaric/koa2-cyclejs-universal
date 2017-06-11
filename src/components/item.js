@@ -17,8 +17,8 @@ function model (props$) {
 }
 
 function view (state$) {
-  return state$.map(({ title }) => {
-    return div(`.item ${styles.item}`, [
+  return state$.map(({ id, title }) => {
+    return div(`.item ${styles.item}`, { attrs: { 'data-id': id } }, [
       div('.header', [
         div('.pull-left', [ h4('', title) ]),
         div('.pull-right', [

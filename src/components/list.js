@@ -1,4 +1,5 @@
 import xs from 'xstream'
+import delay from 'xstream/extra/delay'
 import isolate from '@cycle/isolate'
 import { div, button, h4 } from '@cycle/dom'
 import {
@@ -6,6 +7,7 @@ import {
   getResponseWithState,
   INITIAL_STATE
 } from '../drivers/initialState'
+import createSortable from './sortable'
 import Item from './item'
 import AddItem from './addItem'
 import {
@@ -13,20 +15,26 @@ import {
   ITEM_ADDED,
   REMOVE_ITEM,
   DUPLICATE_ITEM,
+  ITEMS_SORTED,
   OPEN_MODAL,
   BASE_PATH,
   ADD_ITEM_PATH,
+  SORT_ITEMS_PATH,
   DELETE_ITEM_PATH,
   DUPLICATE_ITEM_PATH
 } from '../constants'
+
+function getItemsIds (items) {
+  return items.map(item => parseInt(item.data.attrs['data-id']))
+}
 
 function createAddItem (DOM, openModal$) {
   return isolate(AddItem)({ DOM, OpenModal: openModal$ })
 }
 
 function createNewItem (DOM, item) {
-  const props = { title: item.title }
-  const component = isolate(Item)({ DOM, id: item.id, Props: xs.of(props) })
+  const props = { id: item.id, title: item.title }
+  const component = isolate(Item)({ DOM, Props: xs.of(props) })
   return {
     id: item.id,
     props,
@@ -69,6 +77,16 @@ function getRequest (action$, { initialState, url, category, listId }) {
       }
     }
 
+    if (action.type === ITEMS_SORTED) {
+      return {
+        url: `${BASE_PATH}${SORT_ITEMS_PATH}`
+          .replace(':listId', listId),
+        method: 'POST',
+        send: getItemsIds(action.payload),
+        category: 'sort-items'
+      }
+    }
+
     return {}
   })
 
@@ -92,6 +110,12 @@ function intent (DOM, response$, { itemRemove$, itemDuplicate$, openModal$ }) {
         title: 'Add new item',
         component: createAddItem(DOM, openModal$)
       }),
+    DOM.select('.list').events('nodesSorted')
+      .compose(delay(10))
+      .map(ev => ({
+        type: ITEMS_SORTED,
+        payload: ev.detail.sortedNodes
+      })),
     itemRemove$.map(id => ({type: REMOVE_ITEM, payload: id})),
     itemDuplicate$.map(id => ({type: DUPLICATE_ITEM, payload: id}))
   )
@@ -132,24 +156,40 @@ function model (DOM, action$) {
       return items.filter(item => item.id !== action.payload)
     })
 
-  return xs.merge(initialStateReducer$, addItemReducer$, removeItemReducer$)
+  const sortItemsReducer$ = action$
+    .filter(a => a.type === ITEMS_SORTED)
+    .map(action => {
+      return function sortItemReducer (items) {
+        const sortedIds = getItemsIds(action.payload)
+        return sortedIds.map(id => items.find(item => item.id === id))
+      }
+    })
+
+  return xs.merge(initialStateReducer$, addItemReducer$, removeItemReducer$, sortItemsReducer$)
     .fold((listItems, reducer) => reducer(listItems), [])
 }
 
-function view (state$, listId) {
+function view (state$, DOM, listId) {
   const buttons = div('.buttons', [
     button('.add-button', 'Add new item')
   ])
 
-  return state$.map(items => {
-    const vnodes$ = items.map(item => item.DOM)
-    return xs.combine(...vnodes$)
-      .map(vnodes => div('.list-wrapper', [
-        h4(`List No. ${listId}`),
-        buttons,
-        div('.list', vnodes)
-      ]))
-  }).flatten()
+  return state$
+    .map(items => {
+      const vnodes$ = items.map(item => item.DOM)
+      return xs.combine(...vnodes$)
+        .map(vnodes => div('.list-wrapper', [
+          h4(`List No. ${listId}`),
+          buttons,
+          div('.list', vnodes)
+        ]))
+    })
+    .flatten()
+    .compose(createSortable(DOM, {
+      containerSelector: '.list',
+      draggableSelector: '.item',
+      excludedClasses: ['remove-button', 'duplicate-button']
+    }))
 }
 
 export default function List (sources) {
@@ -161,7 +201,7 @@ export default function List (sources) {
   const response$ = getResponse(sources)
   const action$ = intent(sources.DOM, response$, proxy)
   const state$ = model(sources.DOM, action$)
-  const vtree$ = view(state$, sources.listId)
+  const vtree$ = view(state$, sources.DOM, sources.listId)
   const request = getRequest(action$, sources)
   const itemRemove$ = state$.map(items =>
     xs.merge(...items.map(item => item.Remove))

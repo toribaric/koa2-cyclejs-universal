@@ -62,6 +62,16 @@ export function addItem (listId, item) {
   return createNewItem(list, item)
 }
 
+export function sortItems (listId, ids) {
+  const [ list ] = model.lists.filter(list => list.id === listId)
+  if (!list) {
+    return { success: false, error: 'List not found' }
+  }
+
+  list.items = ids.map(id => list.items.find(item => item.id === id))
+  return { success: true }
+}
+
 export function deleteItem (listId, itemId) {
   const [ list ] = model.lists.filter(list => list.id === listId)
   if (!list) {

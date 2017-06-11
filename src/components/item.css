@@ -1,7 +1,11 @@
 .item {
   max-width: 250px;
+  cursor: move;
   a {
     cursor: pointer;
+  }
+  & :hover {
+    background: whitesmoke;
   }
 }
 

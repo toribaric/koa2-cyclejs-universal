@@ -67,6 +67,8 @@
     "koa-proxy": "^0.8.0",
     "koa-router": "^7.1.1",
     "koa-static": "^3.0.0",
+    "ramda": "^0.24.1",
+    "snabbdom-selector": "^1.2.0",
     "switch-path": "^1.2.0",
     "xstream": "^10.7.0"
   }
