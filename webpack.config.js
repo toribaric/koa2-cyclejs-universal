@@ -26,7 +26,8 @@ module.exports = {
       'cyclic-router',
       'history',
       'switch-path',
-      'xstream'
+      'xstream',
+      'snabbdom-selector'
     ]
   },
   output: {

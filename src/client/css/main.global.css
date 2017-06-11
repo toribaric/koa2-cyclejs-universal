@@ -9,3 +9,12 @@
     }
   }
 }
+
+.ghost-element {
+    position: absolute;
+    z-index: 1000;
+    margin: 0;
+    pointer-events: none;
+    background: orange;
+    opacity: 0.5;
+}

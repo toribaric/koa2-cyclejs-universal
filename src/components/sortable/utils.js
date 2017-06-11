@@ -18,3 +18,22 @@ export function isTargetValid (target, excludedClasses) {
   return excludedClasses.reduce((acc, className) =>
     acc && target.getAttribute('class').indexOf(className) < 0, true)
 }
+
+export function getGhostNodeStyle (top, left, width, height) {
+  return `width: ${width}px; height: ${height}; top: ${top}px; left: ${left}px;`
+}
+
+export function getNewVtree (vtree, container, newVnodes) {
+  const vtreeChildren = vtree.children.map(child => {
+    if (child === container) {
+      return { ...child, children: newVnodes }
+    }
+
+    return child
+  })
+
+  return {
+    ...vtree,
+    children: vtreeChildren
+  }
+}

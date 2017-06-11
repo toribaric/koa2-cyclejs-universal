@@ -20,6 +20,9 @@ chunk hashing, css loader with [css modules](https://github.com/css-modules/css-
 and waiting for the server to respond to render (item adding and duplicating)
 - modal dialog which wraps the injected component (AddItem from list in this case) - more examples of cyclic
 dependent streams handling
+- sortable component - makes the items list sortable by additionally updating the emitted list vtree on mouse down, move and
+up events before it sinks to the DOM driver - it also emits the 'vnodesSorted' DOM event with the list of sorted vnodes (lists' 
+intent in return merges that event into the action$ stream in order to resort it's item components)
 
 ## Getting started
 

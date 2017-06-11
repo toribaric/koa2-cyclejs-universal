@@ -1,4 +1,95 @@
 import { select } from 'snabbdom-selector'
+import {
+  getGhostNodeStyle,
+  getNewVtree
+} from '../utils'
+
+function getNewGhostVnode (ghostVnode, ghostNodeStyle, data) {
+  return {
+    ...ghostVnode,
+    data: {
+      attrs: {
+        ...ghostVnode.data.attrs,
+        'data-top': data.top,
+        'data-left': data.left,
+        'data-previous-x': data.previousX,
+        'data-previous-y': data.previousY,
+        'style': ghostNodeStyle
+      }
+    }
+  }
+}
+
+function getTopAndLeft (ghostVnode, event) {
+  const top = ghostVnode.data.attrs['data-top']
+  const left = ghostVnode.data.attrs['data-left']
+  const previousY = ghostVnode.data.attrs['data-previous-y']
+  const previousX = ghostVnode.data.attrs['data-previous-x']
+  const newTop = top + (event.clientY - previousY)
+  const newLeft = left + (event.clientX - previousX)
+  if (newTop < 0) {
+    return { top: 0, left: newLeft }
+  }
+
+  if (newLeft < 0) {
+    return { top: newTop, left: 0 }
+  }
+
+  return { top: newTop, left: newLeft }
+}
+
+function isPreviousVnodeDraggable (previousVnode) {
+  return previousVnode
+    ? previousVnode.data.attrs && previousVnode.data.attrs['data-draggable']
+    : false
+}
+
+function isFollowingVnodeDraggable (followingVnode) {
+  return followingVnode
+    ? followingVnode.data.attrs && followingVnode.data.attrs['data-draggable']
+    : false
+}
+
+function getSwappedVnodes (vnodes, top) {
+  return vnodes.reduce((swappedVnodes, vnode, i) => {
+    if (swappedVnodes.indexOf(vnode) < 0) {
+      swappedVnodes.push(vnode)
+    }
+
+    const rect = vnode.elm.getBoundingClientRect()
+    const previousVnode = i === 0 ? null : vnodes[i - 1]
+    const followingVnode = i === vnodes.length - 1 ? null : vnodes[i + 1]
+
+    if (isPreviousVnodeDraggable(previousVnode) && top > rect.top) {
+      swappedVnodes[i] = previousVnode
+      swappedVnodes[i - 1] = vnode
+    }
+
+    if (isFollowingVnodeDraggable(followingVnode) && top < rect.top) {
+      swappedVnodes[i] = followingVnode
+      swappedVnodes.push(vnode)
+    }
+
+    return swappedVnodes
+  }, [])
+}
+
+function getNewVnodes (vnodes, ghostVnode, event) {
+  const { top, left } = getTopAndLeft(ghostVnode, event)
+  const ghostTop = top + window.scrollY
+  const ghostLeft = left + window.scrollX
+  const ghostWidth = ghostVnode.data.attrs['data-width']
+  const ghostHeight = ghostVnode.data.attrs['data-height']
+  const ghostNodeStyle = getGhostNodeStyle(ghostTop, ghostLeft, ghostWidth, ghostHeight)
+  const ghostData = { top, left, previousX: event.clientX, previousY: event.clientY }
+  const vnodesWithoutGhost = vnodes.slice(0, vnodes.length - 1)
+  const swappedVnodes = getSwappedVnodes(vnodesWithoutGhost, top)
+  const newGhostVnode = getNewGhostVnode(ghostVnode, ghostNodeStyle, ghostData)
+  return [
+    ...swappedVnodes,
+    newGhostVnode
+  ]
+}
 
 export default function handleMouseMove (state, event, options) {
   const { vtree, draggable } = state
@@ -7,76 +98,12 @@ export default function handleMouseMove (state, event, options) {
   }
 
   const container = select(options.containerSelector, vtree)[0]
-  const items = container.children
-  const ghost = items[items.length - 1]
-
-  let newY = ghost.data.attrs['data-top'] + (event.clientY - ghost.data.attrs['data-previous-y'])
-  let newX = ghost.data.attrs['data-left'] + (event.clientX - ghost.data.attrs['data-previous-x'])
-
-  if (newX < 0) {
-    newX = 0
-  }
-
-  if (newY < 0) {
-    newY = 0
-  }
-
-  const ghostElementStyle = 'z-index: 5; margin: 0; pointer-events: none; position: absolute; background: red; opacity: 0.5; width: '
-  + ghost.data.attrs['data-width'] + 'px; ' + 'height: ' + ghost.data.attrs['data-height'] + 'px; top: '
-  + (newY + window.scrollY) + 'px; left: '
-  + (newX + window.scrollX) + 'px;'
-
-  const newItems1 = items.slice(0, items.length - 1).reduce((acc1, item, i) => {
-    const rect = item.elm.getBoundingClientRect()
-
-    if (acc1.indexOf(item) < 0) {
-      acc1.push(item)
-    }
-
-    const previousElement = i === 0 ? null : items[i - 1]
-    const previousDraggable = previousElement ? previousElement.data.attrs && previousElement.data.attrs['data-draggable'] : false
-
-    const nextElement = i === items.length - 1 ? null : items[i + 1]
-    const nextDraggable = nextElement ? nextElement.data.attrs && nextElement.data.attrs['data-draggable'] : false
-
-    if (previousDraggable && newY > rect.top) {
-      acc1[i] = previousElement
-      acc1[i - 1] = item
-    }
-
-    if (nextDraggable && newY < rect.top) {
-      acc1[i] = nextElement
-      acc1.push(item)
-    }
-
-    return acc1
-  }, [])
-
-  const newItems = [
-    ...newItems1,
-    { ...ghost,
-      data: {
-        attrs: {
-          ...ghost.data.attrs,
-          'data-top': newY,
-          'data-left': newX,
-          'data-previous-x': event.clientX,
-          'data-previous-y': event.clientY,
-          'style': ghostElementStyle
-        }
-      }
-    }
-  ]
-  const newVnodeChildren = vtree.children.map(child => {
-    if (child === container) {
-      return { ...child, children: newItems }
-    }
-
-    return child
-  })
-
+  const vnodes = container.children
+  const ghostVnode = vnodes[vnodes.length - 1]
+  const newVnodes = getNewVnodes(vnodes, ghostVnode, event)
+  const newVtree = getNewVtree(vtree, container, newVnodes)
   return {
-    vtree: { ...vtree, children: newVnodeChildren },
+    vtree: newVtree,
     draggable
   }
 }

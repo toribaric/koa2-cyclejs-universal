@@ -110,11 +110,11 @@ function intent (DOM, response$, { itemRemove$, itemDuplicate$, openModal$ }) {
         title: 'Add new item',
         component: createAddItem(DOM, openModal$)
       }),
-    DOM.select('.list').events('nodesSorted')
+    DOM.select('.list').events('vnodesSorted')
       .compose(delay(10))
       .map(ev => ({
         type: ITEMS_SORTED,
-        payload: ev.detail.sortedNodes
+        payload: ev.detail.sortedVnodes
       })),
     itemRemove$.map(id => ({type: REMOVE_ITEM, payload: id})),
     itemDuplicate$.map(id => ({type: DUPLICATE_ITEM, payload: id}))

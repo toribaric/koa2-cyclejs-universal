@@ -27,11 +27,8 @@ function getNewItemId (items) {
     return 1
   }
 
-  items.sort((x, y) => {
-    return x.id - y.id
-  })
-
-  return items[items.length - 1].id + 1
+  const maxId = items.reduce((maxId, item) => item.id >= maxId ? item.id : maxId, items[0].id)
+  return maxId + 1
 }
 
 function createNewItem (list, item) {
