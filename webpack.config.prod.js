@@ -50,7 +50,7 @@ module.exports = {
     rules: [
       {
         test: /\.(js|jsx)$/,
-        exclude: /node_modules|dist/,
+        exclude: /node_modules\/(?![^/]+?\/(src|es6|es|lib\/es))|dist/,
         loader: 'babel-loader',
         query: {
           babelrc: false,
