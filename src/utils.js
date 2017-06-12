@@ -22,23 +22,30 @@ let model = {
   ]
 }
 
-function getNewItemId (items) {
-  if (!items || items.length === 0) {
+function getNewId (entities) {
+  if (!entities || entities.length === 0) {
     return 1
   }
 
-  const maxId = items.reduce((maxId, item) => item.id >= maxId ? item.id : maxId, items[0].id)
+  const maxId = entities.reduce((maxId, item) =>
+    item.id >= maxId ? item.id : maxId, entities[0].id)
   return maxId + 1
 }
 
 function createNewItem (list, item) {
-  const newItem = { ...item, id: getNewItemId(list.items) }
+  const newItem = { ...item, id: getNewId(list.items) }
   list.items.push(newItem)
   return { success: true, newItem }
 }
 
 export function getLists () {
   return model.lists.map(list => ({ id: list.id, title: list.title }))
+}
+
+export function addList (list) {
+  const newList = { ...list, items: [], id: getNewId(model.lists) }
+  model.lists.push(newList)
+  return { success: true, newList }
 }
 
 export function getListItems (listId) {

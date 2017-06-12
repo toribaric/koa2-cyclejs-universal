@@ -16,7 +16,7 @@ export default function List (sources) {
   const response$ = getResponse(sources)
   const action$ = intent(sources.DOM, response$, proxy)
   const state$ = model(sources.DOM, action$)
-  const vtree$ = view(state$, sources.DOM, sources.listId)
+  const vtree$ = view(state$, sources)
   const request = getRequest(action$, sources)
   const itemRemove$ = state$.map(items =>
     xs.merge(...items.map(item => item.Remove))

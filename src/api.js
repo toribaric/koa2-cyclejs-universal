@@ -3,6 +3,7 @@
 import Router from 'koa-router'
 import {
   getLists,
+  addList,
   getListItems,
   addItem,
   sortItems,
@@ -11,6 +12,7 @@ import {
 } from './utils'
 import {
   LISTS_PATH,
+  ADD_LIST_PATH,
   ITEMS_PATH,
   ADD_ITEM_PATH,
   SORT_ITEMS_PATH,
@@ -21,6 +23,9 @@ import {
 export default function setupApiRoutes (router: Router) {
   router.get(LISTS_PATH, (ctx: Object, next: () => void): void => {
     ctx.body = getLists()
+  })
+  router.post(ADD_LIST_PATH, (ctx: Object, next: () => void): void => {
+    ctx.body = addList(ctx.request.body)
   })
   router.get(ITEMS_PATH, (ctx: Object, next: () => void): void => {
     ctx.body = getListItems(parseInt(ctx.params.listId))
