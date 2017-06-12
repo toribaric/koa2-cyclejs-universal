@@ -1,6 +1,7 @@
 export const BASE_PATH = '/api/v1'
 export const LISTS_PATH = '/lists'
 export const ADD_LIST_PATH = '/lists/add'
+export const DELETE_LIST_PATH = '/lists/:listId/delete'
 export const ITEMS_PATH = '/lists/:listId/items'
 export const ADD_ITEM_PATH = '/lists/:listId/items/add'
 export const SORT_ITEMS_PATH = '/lists/:listId/items/sort'

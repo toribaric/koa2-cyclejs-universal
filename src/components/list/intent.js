@@ -3,6 +3,7 @@ import delay from 'xstream/extra/delay'
 import isolate from '@cycle/isolate'
 import AddItem from '../addItem'
 import {
+  REMOVE_LIST,
   REMOVE_ITEM,
   DUPLICATE_ITEM,
   ITEMS_SORTED,
@@ -21,6 +22,8 @@ export default function intent (DOM, response$, { itemRemove$, itemDuplicate$, o
         title: 'Add new item',
         component: createAddItem(DOM, openModal$)
       }),
+    DOM.select('.remove-button').events('click')
+      .mapTo({ type: REMOVE_LIST }),
     DOM.select('.list').events('vnodesSorted')
       .compose(delay(10))
       .map(ev => ({

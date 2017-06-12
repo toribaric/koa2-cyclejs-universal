@@ -4,7 +4,8 @@ import model from './model'
 import view from './view'
 import { getRequest, getResponse } from './data'
 import {
-  OPEN_MODAL
+  OPEN_MODAL,
+  REMOVE_LIST
 } from '../../constants'
 
 export default function List (sources) {
@@ -33,6 +34,7 @@ export default function List (sources) {
   return {
     DOM: vtree$,
     HTTP: request,
-    OpenModal: openModal$
+    OpenModal: openModal$,
+    Remove: action$.filter(action => action.type === REMOVE_LIST)
   }
 }

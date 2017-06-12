@@ -48,6 +48,11 @@ export function addList (list) {
   return { success: true, newList }
 }
 
+export function deleteList (listId) {
+  model.lists = model.lists.filter(list => list.id !== listId)
+  return { success: true }
+}
+
 export function getListItems (listId) {
   const [ list ] = model.lists.filter(list => list.id === listId)
   if (!list) {

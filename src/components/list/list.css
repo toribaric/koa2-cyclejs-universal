@@ -1,0 +1,6 @@
+.list-wrapper {
+  max-width: 250px;
+  & a {
+      cursor: pointer;
+  }
+}

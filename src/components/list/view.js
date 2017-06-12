@@ -1,6 +1,7 @@
 import xs from 'xstream'
-import { div, button, h4 } from '@cycle/dom'
+import { div, button, h4, a } from '@cycle/dom'
 import createSortable from '../sortable'
+import styles from './list.css'
 
 export default function view (state$, { DOM, listId, listTitle }) {
   const buttons = div('.buttons', [
@@ -19,8 +20,13 @@ export default function view (state$, { DOM, listId, listTitle }) {
     .map(items => {
       const vnodes$ = items.map(item => item.DOM)
       return xs.combine(...vnodes$)
-        .map(vnodes => div('.list-wrapper', [
-          h4(listTitle),
+        .map(vnodes => div(`.list-wrapper ${styles['list-wrapper']}`, [
+          div('.clearfix', [
+            div('.pull-left', h4(listTitle)),
+            div('.pull-right', [
+              a('.remove-button', '(X) Remove list')
+            ])
+          ]),
           buttons,
           div('.list', vnodes)
         ]))

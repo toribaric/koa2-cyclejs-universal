@@ -14,10 +14,12 @@ import {
   BASE_PATH,
   LISTS_PATH,
   ADD_LIST_PATH,
+  DELETE_LIST_PATH,
   ITEMS_PATH,
   OPEN_MODAL,
   ADD_LIST,
-  LIST_ADDED
+  LIST_ADDED,
+  REMOVE_LIST
 } from '../constants'
 
 function getRequest (action$, state$, category) {
@@ -29,6 +31,15 @@ function getRequest (action$, state$, category) {
         method: 'POST',
         send: { title: action.payload },
         category: 'add-list'
+      }
+    }
+
+    if (action.type === REMOVE_LIST && action.payload) {
+      return {
+        url: `${BASE_PATH}${DELETE_LIST_PATH}`
+          .replace(':listId', action.payload),
+        method: 'DELETE',
+        category: 'delete-list'
       }
     }
 
@@ -64,7 +75,12 @@ function getListParams (sources, list) {
 }
 
 function createNewList (id, params) {
-  return isolate(List)(params, `list${id}`)
+  const list = isolate(List)(params, `list${id}`)
+  return {
+    ...list,
+    id,
+    Remove: list.Remove.mapTo(id)
+  }
 }
 
 function createModal (sources, OpenModal) {
@@ -75,13 +91,16 @@ export function createAddList (DOM, openModal$) {
   return isolate(AddList)({ DOM, OpenModal: openModal$ })
 }
 
-function intent (DOM, response$, { openModal$ }) {
-  const action$ = DOM.select('.add-button').events('click')
-    .mapTo({
-      type: OPEN_MODAL,
-      title: 'Add new list',
-      component: createAddList(DOM, openModal$)
-    })
+function intent (DOM, response$, { openModal$, listRemove$ }) {
+  const action$ = xs.merge(
+    DOM.select('.add-button').events('click')
+      .mapTo({
+        type: OPEN_MODAL,
+        title: 'Add new list',
+        component: createAddList(DOM, openModal$)
+      }),
+    listRemove$.map(id => ({ type: REMOVE_LIST, payload: id }))
+  )
 
   const addListAction$ = action$
     .filter(a => a.type === OPEN_MODAL)
@@ -126,7 +145,13 @@ function model (sources, action$) {
       }
     })
 
-  return xs.merge(initialStateReducer$, addListReducer$)
+  const removeListReducer$ = action$
+    .filter(a => a.type === REMOVE_LIST)
+    .map(action => function removeListReducer (lists) {
+      return lists.filter(list => list.id !== action.payload)
+    })
+
+  return xs.merge(initialStateReducer$, addListReducer$, removeListReducer$)
     .fold((lists, reducer) => reducer(lists), [])
 }
 
@@ -154,6 +179,7 @@ function view (state$, modal, sources) {
 
 export default function Items (sources) {
   const proxy = {
+    listRemove$: xs.create(),
     openModal$: xs.create()
   }
 
@@ -172,8 +198,12 @@ export default function Items (sources) {
       .map(lists => xs.merge(...lists.map(list => list.OpenModal)))
       .flatten()
   )
+  const listRemove$ = state$
+    .map(lists => xs.merge(...lists.map(list => list.Remove)))
+    .flatten()
 
   proxy.openModal$.imitate(openModal$)
+  proxy.listRemove$.imitate(listRemove$)
 
   return {
     DOM: vtree$,

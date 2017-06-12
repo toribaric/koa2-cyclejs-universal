@@ -1,5 +1,6 @@
 export const ADD_LIST = 'ADD_LIST'
 export const LIST_ADDED = 'LIST_ADDED'
+export const REMOVE_LIST = 'REMOVE_LIST'
 export const ADD_ITEM = 'ADD_ITEM'
 export const ITEM_ADDED = 'ITEM_ADDED'
 export const REMOVE_ITEM = 'REMOVE_ITEM'
